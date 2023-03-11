@@ -2,15 +2,16 @@ use crate::*;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 
+const GAS_FOR_NFT_ON_TRANSFER: Gas = Gas(40_000_000_000_000);
+
 // TODO: Refactor everything
 //TODO : asda sas
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct RaffleArgs {
     ticket_price: String,
-    supply: u32,
-    owner_id: AccountId,
-    end_date: String,
+    // supply: u32,
+    // end_date: String,
 }
 trait NonFungibleTokenApprovalsReceiver {
     fn nft_on_approve(
@@ -57,20 +58,21 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
             "NFT WORLD: owner_id should be signer_id"
         );
 
-        let memo = Some(String::from("Hello, world!"));
+        let memo = Some(String::from("H"));
 
         let new_approval = Some(approval_id);
         // nft_contract_id
         let RaffleArgs {
             ticket_price,
-            supply,
-            owner_id,
-            end_date,
+            // supply,
+            // end_date,
         } = near_sdk::serde_json::from_str(&msg).expect("Not valid MarketArgs");
 
         let promise = ext_nft_contract::ext(nft_contract_id.clone())
-            .with_static_gas(Gas(1 * TGAS))
+            // .with_static_gas(GAS_FOR_NFT_ON_TRANSFER)
+            .with_static_gas(Gas(24 * TGAS))
             .with_attached_deposit(ONE_YOCTO)
+            // .nft_transfer(receiver_id, token_id, new_approval, memo);
             .nft_transfer_call(receiver_id, token_id, new_approval, memo, msg);
 
         let owner_paid_storage = self.storage_deposits.get(&signer_id).unwrap_or(0);
@@ -91,17 +93,16 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
 
         let RaffleArgs {
             ticket_price,
-            supply,
-            owner_id,
-            end_date,
+            // supply,
+            // end_date,
         } = near_sdk::serde_json::from_str(&msg).expect("Not valid MarketArgs");
 
         let raffle_id = Contract::create_raffle_id(&nft_contract_id, &token_id, &signer_id);
 
-        let new_raffle =
-            Contract::create_single_raffle(raffle_id.clone(), supply, ticket_price, end_date);
+        // let new_raffle =
+        //     Contract::create_single_raffle(raffle_id.clone(), supply, ticket_price, end_date);
 
-        self.all_raffles.insert(&raffle_id, &new_raffle);
+        // self.all_raffles.insert(&raffle_id, &new_raffle);
     }
 
     // #[private]

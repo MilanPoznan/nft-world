@@ -16,22 +16,22 @@ impl Contract {
         )
     }
 
-    pub fn create_single_raffle(
-        raffle_id: String,
-        supply: u32,
-        ticket_price: String,
-        end_date: String,
-    ) -> SingleRaffle {
-        // let unique_map_str = format!({}{}, "b".to_string())
-        let single_raffle = SingleRaffle {
-            raffle_id,
-            supply,
-            ticket_price,
-            end_date,
-            purchased_tickets: UnorderedMap::new(b"raffle_id".to_vec()),
-        };
-        return single_raffle;
-    }
+    // pub fn create_single_raffle(
+    //     raffle_id: String,
+    //     supply: u32,
+    //     ticket_price: String,
+    //     end_date: String,
+    // ) -> SingleRaffle {
+    //     // let unique_map_str = format!({}{}, "b".to_string())
+    //     let single_raffle = SingleRaffle {
+    //         raffle_id,
+    //         supply,
+    //         ticket_price,
+    //         end_date,
+    //         purchased_tickets: UnorderedMap::new(b"raffle_id".to_vec()),
+    //     };
+    //     return single_raffle;
+    // }
 
     pub fn set_approval_id_to_contract(
         &self,
@@ -42,33 +42,33 @@ impl Contract {
     ) {
     }
 
-    pub fn send_nft_to_contract(
-        &self,
-        receiver_id: AccountId,
-        token_id: TokenId,
-        approval_id: Option<u64>,
-        memo: Option<String>,
-    ) -> Promise {
-        let account: AccountId = "nft-tst.testnet".parse().unwrap();
+    // pub fn send_nft_to_contract(
+    //     &self,
+    //     receiver_id: AccountId,
+    //     token_id: TokenId,
+    //     approval_id: Option<u64>,
+    //     memo: Option<String>,
+    // ) -> Promise {
+    //     let account: AccountId = "nft-tst.testnet".parse().unwrap();
 
-        // let receiver_id = env::current_account_id();
-        let promise = nft_demo::ext(account.clone())
-            .with_static_gas(Gas(1 * TGAS))
-            .with_attached_deposit(ONE_YOCTO)
-            .nft_transfer(receiver_id, token_id, approval_id, memo);
+    //     // let receiver_id = env::current_account_id();
+    //     let promise = nft_demo::ext(account.clone())
+    //         .with_static_gas(Gas(1 * TGAS))
+    //         .with_attached_deposit(ONE_YOCTO)
+    //         .nft_transfer(receiver_id, token_id, approval_id, memo);
 
-        // let promise = nft_demo::ext(account.clone())
-        // .with_static_gas(Gas(10 * TGAS))
-        // .nft_transfer(
-        //     "nft-proba.testnet",
-        // )
+    //     // let promise = nft_demo::ext(account.clone())
+    //     // .with_static_gas(Gas(10 * TGAS))
+    //     // .nft_transfer(
+    //     //     "nft-proba.testnet",
+    //     // )
 
-        return promise.then(
-            Self::ext(env::current_account_id())
-                // .with_static_gas(Gas(5 * TGAS))
-                .cross_contract_nft_transfer(),
-        );
-    }
+    //     return promise.then(
+    //         Self::ext(env::current_account_id())
+    //             // .with_static_gas(Gas(5 * TGAS))
+    //             .cross_contract_nft_transfer(),
+    //     );
+    // }
 
     #[private]
     #[handle_result]
