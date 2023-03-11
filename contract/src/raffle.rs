@@ -1,21 +1,37 @@
 use crate::*;
 
 pub const ONE_YOCTO: Balance = 1;
+const DELIMETER: &str = "-";
 
 #[near_bindgen]
 impl Contract {
-    // #[payable]
-    // pub fn create_raflle(
-    //     &mut self,
-    //     // creator_id: AccountId,
-    //     token_id: NftId,
-    //     nft_contract: ContractID,
-    //     end_date: String,
-    //     supply: u32,
-    //     ticket_price: String,
-    // ) {
-    //     assert!(self.supported_nft_contracts.contains(&nft_contract))
-    // }
+    pub fn create_raffle_id(
+        nft_contract_id: &AccountId,
+        token_id: &TokenId,
+        owner_id: &AccountId,
+    ) -> String {
+        format!(
+            "{}{}{}{}{}",
+            nft_contract_id, DELIMETER, token_id, DELIMETER, owner_id
+        )
+    }
+
+    pub fn create_single_raffle(
+        raffle_id: String,
+        supply: u32,
+        ticket_price: String,
+        end_date: String,
+    ) -> SingleRaffle {
+        // let unique_map_str = format!({}{}, "b".to_string())
+        let single_raffle = SingleRaffle {
+            raffle_id,
+            supply,
+            ticket_price,
+            end_date,
+            purchased_tickets: UnorderedMap::new(b"raffle_id".to_vec()),
+        };
+        return single_raffle;
+    }
 
     pub fn set_approval_id_to_contract(
         &self,

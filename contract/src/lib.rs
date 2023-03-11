@@ -1,6 +1,8 @@
 // Find all our documentation at https://docs.near.org
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::serde::{Deserialize, Serialize};
 
+pub use crate::raffle::*;
 use near_sdk::collections::{LookupMap, LookupSet, UnorderedMap, UnorderedSet, Vector};
 use near_sdk::{
     env, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault, Promise,
@@ -9,7 +11,6 @@ use near_sdk::{
 
 pub use crate::external::*;
 pub use crate::nft_callbacks::*;
-pub use crate::raffle::*;
 
 pub mod external;
 pub mod nft_callbacks;
@@ -37,14 +38,9 @@ pub struct Tickets {
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct SingleRaffle {
     pub raffle_id: String,
-    //market contract's approval ID to transfer the token on behalf of the owner
-    pub approval_id: u64,
-    pub owner_id: AccountId,
-    pub nft_id: String,
-    pub nft_contract: String,
-    pub end_date: String,
     pub supply: u32,
     pub ticket_price: String,
+    pub end_date: String,
     pub purchased_tickets: UnorderedMap<AccountId, Tickets>,
 }
 

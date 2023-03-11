@@ -2,10 +2,15 @@ use crate::*;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 
+// TODO: Refactor everything
+//TODO : asda sas
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct RaffleArgs {
-    ticket_price: i32,
+    ticket_price: String,
+    supply: u32,
+    owner_id: AccountId,
+    end_date: String,
 }
 trait NonFungibleTokenApprovalsReceiver {
     fn nft_on_approve(
@@ -13,6 +18,14 @@ trait NonFungibleTokenApprovalsReceiver {
         token_id: TokenId,
         owner_id: AccountId,
         approval_id: u64,
+        msg: String,
+    );
+
+    fn nft_on_transfer(
+        &mut self,
+        sender_id: AccountId,
+        previous_token_owner: AccountId,
+        token_id: TokenId,
         msg: String,
     );
 }
@@ -48,15 +61,47 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
 
         let new_approval = Some(approval_id);
         // nft_contract_id
-        let RaffleArgs { ticket_price } =
-            near_sdk::serde_json::from_str(&msg).expect("Not valid MarketArgs");
+        let RaffleArgs {
+            ticket_price,
+            supply,
+            owner_id,
+            end_date,
+        } = near_sdk::serde_json::from_str(&msg).expect("Not valid MarketArgs");
 
         let promise = ext_nft_contract::ext(nft_contract_id.clone())
             .with_static_gas(Gas(1 * TGAS))
             .with_attached_deposit(ONE_YOCTO)
-            .nft_transfer(receiver_id, token_id, new_approval, memo);
+            .nft_transfer_call(receiver_id, token_id, new_approval, memo, msg);
 
         let owner_paid_storage = self.storage_deposits.get(&signer_id).unwrap_or(0);
+    }
+
+    fn nft_on_transfer(
+        &mut self,
+        sender_id: AccountId,
+        previous_token_owner: AccountId,
+        token_id: TokenId,
+        msg: String,
+    ) {
+        // enforce cross contract call and owner_id is signer
+        //Kontrakt koji me pinga
+        let nft_contract_id = env::predecessor_account_id();
+        //WAllet koji je zapoceo call
+        let signer_id = env::signer_account_id();
+
+        let RaffleArgs {
+            ticket_price,
+            supply,
+            owner_id,
+            end_date,
+        } = near_sdk::serde_json::from_str(&msg).expect("Not valid MarketArgs");
+
+        let raffle_id = Contract::create_raffle_id(&nft_contract_id, &token_id, &signer_id);
+
+        let new_raffle =
+            Contract::create_single_raffle(raffle_id.clone(), supply, ticket_price, end_date);
+
+        self.all_raffles.insert(&raffle_id, &new_raffle);
     }
 
     // #[private]

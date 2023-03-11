@@ -6,10 +6,13 @@ node_modules
 /.pnp
 .pnp.js
 
+
+
+
 # build
 /out
 /dist
-
+/contract/target
 # keys
 /templates/react/neardev
 
