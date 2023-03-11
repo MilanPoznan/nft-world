@@ -1,0 +1,12 @@
+/Users/milanpoznan/Documents/blockchain-dev/NEAR/RUST/nft-world/contract/target/debug/deps/semver-01ad2172e25326ab.rmeta: /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/lib.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/backport.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/display.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/error.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/eval.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/identifier.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/impls.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/parse.rs
+
+/Users/milanpoznan/Documents/blockchain-dev/NEAR/RUST/nft-world/contract/target/debug/deps/semver-01ad2172e25326ab.d: /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/lib.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/backport.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/display.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/error.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/eval.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/identifier.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/impls.rs /Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/parse.rs
+
+/Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/lib.rs:
+/Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/backport.rs:
+/Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/display.rs:
+/Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/error.rs:
+/Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/eval.rs:
+/Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/identifier.rs:
+/Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/impls.rs:
+/Users/milanpoznan/.cargo/registry/src/github.com-1ecc6299db9ec823/semver-1.0.16/src/parse.rs:
