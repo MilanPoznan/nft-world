@@ -9,12 +9,14 @@ use near_sdk::{
     PromiseError,
 };
 
+pub use crate::raffle::*;
+
 pub use crate::external::*;
 pub use crate::nft_callbacks::*;
+pub mod raffle;
 
 pub mod external;
 pub mod nft_callbacks;
-pub mod raffle;
 
 //RaffledId will be combination contract+tokenId+userAcc
 pub type RaffleID = String;
@@ -35,13 +37,15 @@ pub struct Tickets {
     pub buyer_id: AccountId,
 }
 
-#[derive(BorshDeserialize, BorshSerialize)]
+// #[derive()]
+#[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
+#[serde(crate = "near_sdk::serde")]
 pub struct SingleRaffle {
     pub raffle_id: String,
     pub supply: u32,
     pub ticket_price: String,
     pub end_date: String,
-    pub purchased_tickets: UnorderedMap<AccountId, Tickets>,
+    // pub purchased_tickets: UnorderedMap<AccountId, Tickets>,
 }
 
 #[derive(BorshDeserialize, BorshSerialize)]
@@ -60,7 +64,7 @@ pub struct Contract {
     // pub external_account_id: AccountId,
     pub owner_id: AccountId,
     pub supported_nft_contracts: LookupSet<ContractID>,
-    pub all_raffles: UnorderedMap<RaffleID, SingleRaffle>,
+    pub all_raffles: UnorderedMap<String, SingleRaffle>,
     pub users: UnorderedMap<AccountId, SingleUser>,
     //
     pub by_owner_id: LookupMap<AccountId, UnorderedSet<RaffleID>>,

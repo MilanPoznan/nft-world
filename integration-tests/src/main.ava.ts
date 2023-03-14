@@ -18,6 +18,11 @@ test.beforeEach(async (t) => {
     process.argv[2],
   );
 
+
+  //Artists
+  // const ludikonj = await root.createSubAccount('rambo')
+
+
   // Save state for test runs, it is unique for each test
   t.context.worker = worker;
   t.context.accounts = { root, contract };
@@ -30,15 +35,27 @@ test.afterEach.always(async (t) => {
   });
 });
 
-test('returns the default greeting', async (t) => {
-  const { contract } = t.context.accounts;
-  const message: string = await contract.view('get_greeting', {});
-  t.is(message, 'Hello');
-});
 
-test('changes the message', async (t) => {
-  const { root, contract } = t.context.accounts;
-  await root.call(contract, 'set_greeting', { message: 'Howdy' });
-  const message: string = await contract.view('get_greeting', {});
-  t.is(message, 'Howdy');
+
+test('Create new raffle', async (t) => {
+  const { contract, ludikonj } = t.context.accounts;
+
+
+
+  const args = {
+    token_id: "2:3",
+    owner_id: 'ludikonj.testnet', // token.owner_id
+    nft_contract_id: 'nft-proba.testnet',
+    supply: 30,
+    ticket_price: "10",
+    end_date: "10.12.2023",
+  }
+
+  const newRaffleId = await ludikonj.call(contract, 'insert_raffle_to_state', { ...args });
+  console.log('newRaffleId', newRaffleId)
+
+  const singleRaffle = await ludikonj.call(contract, 'get_single_raffles', { raffle_id: newRaffleId })
+  console.log(singleRaffle)
+
+  t.is(newRaffleId, 'nft-proba.testnet_2:3_ludikonj.testnet');
 });
