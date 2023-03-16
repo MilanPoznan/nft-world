@@ -13,6 +13,7 @@ pub struct RaffleArgs {
     supply: u32,
     end_date: String,
 }
+
 trait NonFungibleTokenApprovalsReceiver {
     fn nft_on_approve(
         &mut self,

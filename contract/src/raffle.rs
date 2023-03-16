@@ -20,13 +20,17 @@ pub(crate) fn create_single_raffle(
     ticket_price: String,
     end_date: String,
 ) -> SingleRaffle {
+    let mut purchased_tickets = HashMap::new();
+
     // let unique_map_str = format!({}{}, "b".to_string())
     let single_raffle = SingleRaffle {
         raffle_id,
         supply,
         ticket_price,
         end_date,
-        // purchased_tickets: UnorderedMap::new(b"raffle_id".to_vec()),
+        is_ended: false,
+        winner: None,
+        purchased_tickets: purchased_tickets,
     };
     single_raffle
 }

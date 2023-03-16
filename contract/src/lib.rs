@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 // Find all our documentation at https://docs.near.org
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
@@ -29,15 +31,15 @@ pub struct TicketTransactions {
     pub count: u32,
 }
 
-#[derive(BorshDeserialize, BorshSerialize)]
+#[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
+#[serde(crate = "near_sdk::serde")]
 pub struct Tickets {
-    pub raffle_id: String,
-    pub number_of_tickets: u32,
-    pub transactions: Vector<TicketTransactions>,
-    pub buyer_id: AccountId,
+    number_of_tickets: u32,
+    ticket_range: String,
 }
 
 // #[derive()]
+// #[derive(Hash, Eq, PartialEq, Debug)]
 #[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct SingleRaffle {
@@ -45,7 +47,9 @@ pub struct SingleRaffle {
     pub supply: u32,
     pub ticket_price: String,
     pub end_date: String,
-    // pub purchased_tickets: UnorderedMap<AccountId, Tickets>,
+    pub is_ended: bool,
+    pub winner: Option<AccountId>,
+    pub purchased_tickets: HashMap<AccountId, Tickets>, // pub purchased_tickets: UnorderedMap<AccountId, Tickets>,
 }
 
 #[derive(BorshDeserialize, BorshSerialize)]
