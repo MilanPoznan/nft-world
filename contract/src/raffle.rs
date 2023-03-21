@@ -1,3 +1,5 @@
+use core::num;
+
 use crate::*;
 
 pub const ONE_YOCTO: Balance = 1;
@@ -20,7 +22,7 @@ pub(crate) fn create_single_raffle(
     ticket_price: String,
     end_date: String,
 ) -> SingleRaffle {
-    let mut purchased_tickets = HashMap::new();
+    let purchased_tickets = HashMap::new();
 
     // let unique_map_str = format!({}{}, "b".to_string())
     let single_raffle = SingleRaffle {
@@ -28,6 +30,7 @@ pub(crate) fn create_single_raffle(
         supply,
         ticket_price,
         end_date,
+        sold_tickets: 0,
         is_ended: false,
         winner: None,
         purchased_tickets: purchased_tickets,
@@ -38,13 +41,10 @@ pub(crate) fn create_single_raffle(
 #[near_bindgen]
 impl Contract {
     pub fn get_single_raffles(&self, raffle_id: TokenId) -> SingleRaffle {
-        // assert!(self.all_raffles.is_empty() == true, "No Raffles ");
-
-        let x = self.all_raffles.get(&raffle_id).expect("NO faffle found");
-        x
+        self.all_raffles.get(&raffle_id).expect("NO faffle found")
     }
 
-    pub fn get_all_raffles(&mut self) -> Vec<SingleRaffle> {
+    pub fn get_all_raffles(&self) -> Vec<SingleRaffle> {
         let mut vec: Vec<SingleRaffle> = vec![];
         for raffle in self.all_raffles.values() {
             vec.push(raffle);
@@ -52,28 +52,71 @@ impl Contract {
         vec
     }
 
-    // pub fn test_raffle(&self) {
-    //     self.all_raffles.keys(
-    // }
-    // pub fn get_state(self) -> UnorderedMap<String, SingleRaffle> {
-    //     self.all_raffles
-    // }
-
-    pub fn insert_raffle_to_state(
+    //Just for testing purpose
+    pub fn insert_raflle_test(
         &mut self,
-        token_id: TokenId,
-        owner_id: AccountId, // token.owner_id
         nft_contract_id: AccountId,
+        token_id: TokenId,
+        owner_id: AccountId,
         supply: u32,
         ticket_price: String,
         end_date: String,
-    ) -> SingleRaffle {
-        let id = create_raffle_id(&nft_contract_id, &token_id, &owner_id);
-        let single_raffle = create_single_raffle(id.clone(), supply, ticket_price, end_date);
-        self.all_raffles.insert(&id, &single_raffle);
+    ) {
+        // let signer_id = env::signer_account_id();
 
-        let raffle = self.all_raffles.get(&id).expect("No raffle");
-        raffle
+        let raffle_id = create_raffle_id(&nft_contract_id, &token_id, &owner_id);
+
+        let new_raffle = create_single_raffle(raffle_id.clone(), supply, ticket_price, end_date);
+
+        self.all_raffles.insert(&raffle_id, &new_raffle);
+    }
+
+    #[payable]
+    pub fn purchase_raffle(
+        &mut self,
+        raffle_id: String,
+        number_of_tickets: u32,
+        purchaser: AccountId,
+    ) -> SingleRaffle {
+        let signer_id = env::predecessor_account_id();
+
+        assert_eq!(purchaser, signer_id, "Buyer should be signer");
+
+        let mut current_raffle = self.all_raffles.get(&raffle_id).expect("NO faffle found");
+
+        let ticket_price = &current_raffle.ticket_price;
+
+        let attached_deposit = env::attached_deposit();
+
+        let u32_price: u32 = ticket_price.to_string().parse().unwrap();
+
+        let total_ticket_ammount = number_of_tickets * u32_price;
+
+        //Increase tickets
+        let curr_tickets_num = current_raffle.sold_tickets;
+        let total_tickets = current_raffle.sold_tickets + number_of_tickets;
+
+        let ticket_range = format!("{}-{}", curr_tickets_num, total_tickets);
+        let total_ticket_ammount_128: u128 = total_ticket_ammount.to_string().parse().unwrap();
+
+        assert!(
+            attached_deposit <= total_ticket_ammount_128,
+            "Not enough money"
+        );
+
+        let new_ticket = Tickets {
+            number_of_tickets,
+            ticket_range,
+        };
+
+        current_raffle
+            .purchased_tickets
+            .insert(signer_id.clone(), new_ticket);
+
+        //Increase number of sold tickets in state
+        current_raffle.sold_tickets = total_tickets;
+
+        current_raffle
     }
 
     #[private]

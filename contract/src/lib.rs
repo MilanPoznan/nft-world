@@ -49,6 +49,7 @@ pub struct SingleRaffle {
     pub end_date: String,
     pub is_ended: bool,
     pub winner: Option<AccountId>,
+    pub sold_tickets: u32,
     pub purchased_tickets: HashMap<AccountId, Tickets>, // pub purchased_tickets: UnorderedMap<AccountId, Tickets>,
 }
 

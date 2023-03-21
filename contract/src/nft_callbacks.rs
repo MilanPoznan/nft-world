@@ -112,13 +112,4 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
 
         self.all_raffles.insert(&raffle_id, &new_raffle);
     }
-
-    // #[private]
-    // #[handle_result]
-    // pub fn after_nft_trasfer(&self, #[callback_result] call_result: Result<()>) {
-    //     match call_result {
-    //         Ok(_) => String::from("NFT transfered successfully"),
-    //         Err(e) => String::from("NFT transfered failed"),
-    //     }
-    // }
 }
