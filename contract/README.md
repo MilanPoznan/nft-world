@@ -6,7 +6,10 @@ deploy comand: near deploy --wasmFile ./contract/target/wasm32-unknown-unknown/r
 
 
 ** Kada mi je param deserializovan sa serde json (near_sdk::serde_json::from_str(&msg)) pvako pozivam msg param
-near call contract-name nft_approve '{"token_id": "2:2", "account_id": "nft-proba.testnet", "msg": "{\"ticket_price\": 100}" }' --accountId my-account
 
-NEW_CONT=raffle-nft.testnet
+near call contract-name nft_approve '{"token_id": "2:2", "account_id": "nft-proba.testnet", "msg": "{\"ticket_price\": 100000000000000000000000}" }' --accountId my-account
+
+NEW_CONT=raffle-nft2.testnet
+
+near call $CONT_ID get_all_raffles --accountId $CONT_ID
 
