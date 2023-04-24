@@ -5,7 +5,6 @@ use near_sdk::{ext_contract, near_bindgen, AccountId, PromiseOrValue};
 pub const TGAS: u64 = 1_000_000_000_000;
 pub const NO_DEPOSIT: u128 = 0;
 pub const XCC_SUCCESS: u64 = 1;
-
 pub type TokenId = String;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -40,6 +39,9 @@ trait NftDemo {
     ) -> PromiseOrValue<bool>;
     fn nft_approve(&mut self, token_id: TokenId, account_id: AccountId, msg: Option<String>);
 }
+
+//Define external contract interface
+//ext_nft_contract je u stvari wrapper oko traita. Wrapper pojednostavljuje pozivanje externih metoda i to je sve
 
 #[ext_contract(ext_nft_contract)]
 trait NftContract {

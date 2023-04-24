@@ -8,7 +8,7 @@ pub use crate::raffle::*;
 use near_sdk::collections::{LookupMap, LookupSet, UnorderedMap, UnorderedSet, Vector};
 use near_sdk::{
     env, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault, Promise,
-    PromiseError,
+    PromiseError, PromiseResult,
 };
 
 pub use crate::raffle::*;
@@ -49,9 +49,13 @@ pub struct SingleRaffle {
     pub end_date: String,
     pub is_ended: bool,
     pub winner: Option<AccountId>,
+    pub raffle_creator: AccountId,
     pub sold_tickets: u32,
     pub purchased_tickets: HashMap<String, AccountId>, // pub purchased_tickets: UnorderedMap<AccountId, Tickets>,
 }
+
+//BorshDeserialize & BorshSerialize allow the structure to be read and written into the contract's state
+//Serialize & Deserialize allow the structure to be used as an input type and return type of the contract's methods.
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct SingleUser {
@@ -95,7 +99,6 @@ impl Contract {
     pub fn new(owner_id: AccountId) -> Self {
         let mut supported_nft_contracts =
             LookupSet::new(StorageKey::SupportedSet.try_to_vec().unwrap());
-
         let this = Self {
             owner_id,
             supported_nft_contracts,

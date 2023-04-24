@@ -2,7 +2,8 @@ use crate::*;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 
-const GAS_FOR_NFT_ON_TRANSFER: Gas = Gas(40_000_000_000_000);
+const GAS_FOR_NFT_ON_TRANSFER: Gas = Gas(9_000_000_000_000);
+//oko 8 tgas je slanje jednog NFT
 
 // TODO: Refactor everything
 //TODO : asda sas
@@ -70,7 +71,13 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
         let raffle_id = create_raffle_id(&nft_contract_id, &token_id, &signer_id);
 
         let option_id = Some(raffle_id.clone());
-        let new_raffle = create_single_raffle(raffle_id.clone(), supply, ticket_price, end_date);
+        let new_raffle = create_single_raffle(
+            raffle_id.clone(),
+            owner_id.clone(),
+            supply,
+            ticket_price,
+            end_date,
+        );
 
         self.all_raffles.insert(&raffle_id, &new_raffle);
 
@@ -80,11 +87,6 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
             .with_attached_deposit(ONE_YOCTO)
             .nft_transfer(receiver_id, token_id, new_approval, option_id);
         // .nft_transfer(receiver_id, token_id, new_approval, memo, msg);
-
-        // promise.then(
-
-        // )
-        // let owner_paid_storage = self.storage_deposits.get(&signer_id).unwrap_or(0);
     }
 
     fn nft_on_transfer(
@@ -108,7 +110,13 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
 
         let raffle_id = create_raffle_id(&nft_contract_id, &token_id, &signer_id);
 
-        let new_raffle = create_single_raffle(raffle_id.clone(), supply, ticket_price, end_date);
+        let new_raffle = create_single_raffle(
+            raffle_id.clone(),
+            signer_id.clone(),
+            supply,
+            ticket_price,
+            end_date,
+        );
 
         self.all_raffles.insert(&raffle_id, &new_raffle);
     }

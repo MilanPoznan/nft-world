@@ -1,9 +1,50 @@
 use core::num;
 
 use crate::*;
+use near_sdk::{
+    env, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault, Promise,
+    PromiseError, PromiseResult,
+};
 
 pub const ONE_YOCTO: Balance = 1;
 const DELIMETER: &str = "_";
+
+fn find_winner_by_seed(
+    pruchased_tickets_map: &HashMap<String, AccountId>,
+    seed: u64,
+    raffle_creator: &AccountId,
+) -> Option<AccountId> {
+    if pruchased_tickets_map.len() == 0 {
+        return Some(raffle_creator.clone());
+    }
+
+    for (range, account_id) in pruchased_tickets_map {
+        //Ako je range of tickets
+        if range.contains("..") {
+            //Split returns Iterator ->
+            //Iterator has impl collect trait which will return Vec from Iterator
+            let range_split: Vec<&str> = range.split("..").collect();
+            let start: u64 = range_split[0].parse().unwrap();
+            let end: u64 = range_split[1].parse().unwrap();
+
+            if seed >= start && seed <= end {
+                return Some(account_id.clone());
+            }
+        } else {
+            //Single ticket
+            let range_u64: u64 = range.parse().unwrap();
+            if range_u64 == seed {
+                return Some(account_id.clone());
+            }
+        }
+    }
+    None
+}
+
+fn get_data_from_raffle_id(raffle_id: &str) -> Vec<&str> {
+    let contract_nft_user: Vec<&str> = raffle_id.split("_").collect();
+    contract_nft_user
+}
 
 pub(crate) fn create_raffle_id(
     nft_contract_id: &AccountId,
@@ -18,6 +59,7 @@ pub(crate) fn create_raffle_id(
 
 pub(crate) fn create_single_raffle(
     raffle_id: String,
+    raffle_creator: AccountId,
     supply: u32,
     ticket_price: String,
     end_date: String,
@@ -33,21 +75,24 @@ pub(crate) fn create_single_raffle(
         sold_tickets: 0,
         is_ended: false,
         winner: None,
+        raffle_creator,
         purchased_tickets: purchased_tickets,
     };
     single_raffle
 }
 
 pub trait RaffleTraits {
-    fn get_single_raffle(&self, raffle_id: TokenId) -> SingleRaffle;
+    fn get_single_raffle(&self, raffle_id: &RaffleID) -> SingleRaffle;
+
+    fn remove_single_raffle(&mut self, raffle_id: TokenId) -> String;
 
     fn get_all_raffles(&self) -> Vec<SingleRaffle>;
 
     fn remove_user_from_raffle(&self, raffle_id: TokenId, tickets: String) -> SingleRaffle;
 
-    fn test_pseudo_random_number(max_value: u64) -> u64;
+    // fn test_pseudo_random_number(max_value: u64) -> u64;
 
-    fn pseudo_random_number(&self, raffle_id: String) -> u64;
+    fn pseudo_random_number(&self, raffle_id: String) -> (AccountId, u64, String, String, String);
 
     fn purchase_raffle(
         &mut self,
@@ -55,12 +100,35 @@ pub trait RaffleTraits {
         number_of_tickets: u32,
         purchaser: AccountId,
     ) -> SingleRaffle;
+
+    fn on_nft_transfer_callback(&mut self, nft_id: TokenId);
 }
 
 #[near_bindgen]
 impl RaffleTraits for Contract {
-    fn get_single_raffle(&self, raffle_id: TokenId) -> SingleRaffle {
+    fn get_single_raffle(&self, raffle_id: &RaffleID) -> SingleRaffle {
         self.all_raffles.get(&raffle_id).expect("NO faffle found")
+    }
+
+    fn remove_single_raffle(&mut self, raffle_id: RaffleID) -> String {
+        let single_raffle = self.get_single_raffle(&raffle_id);
+        let message = String::from("Raffle removed sucessfully");
+
+        if single_raffle.is_ended {
+            self.all_raffles.remove(&raffle_id);
+            return message;
+        }
+
+        if single_raffle.is_ended == false && single_raffle.sold_tickets == 0 {
+            self.all_raffles.remove(&raffle_id);
+            return message;
+        }
+
+        if single_raffle.is_ended == false && single_raffle.sold_tickets > 0 {
+            return String::from("RAffle can't be removed because tickets are already purchased");
+        }
+
+        return "Raffle removed sucessfully".to_string();
     }
 
     fn remove_user_from_raffle(&self, raffle_id: TokenId, tickets: String) -> SingleRaffle {
@@ -77,51 +145,27 @@ impl RaffleTraits for Contract {
         vec
     }
 
-    fn test_pseudo_random_number(max_value: u64) -> u64 {
-        let block_index = env::block_height();
-        let block_timestamp = env::block_timestamp();
-        let account_id = env::signer_account_id().as_bytes().to_vec();
-
-        let mut seed: u64 = 0;
-
-        for byte in account_id {
-            seed = (seed + u64::from(byte)) % max_value as u64;
-        }
-
-        let seed_log = format!("First {}", seed);
-
-        env::log_str(&seed_log);
-        seed = (seed + block_index) % max_value as u64;
-
-        let seed_log2 = format!("Second seed {} and block index -> {}", seed, block_index);
-
-        env::log_str(&seed_log2);
-
-        seed = (seed + block_timestamp) % max_value as u64;
-
-        let seed_log3 = format!(
-            "Third seed {} and block timestamp -> {}",
-            seed, block_timestamp
-        );
-
-        env::log_str(&seed_log3);
-
-        seed
-    }
-
-    fn pseudo_random_number(&self, raffle_id: String) -> u64 {
+    fn pseudo_random_number(&self, raffle_id: String) -> (AccountId, u64, String, String, String) {
+        //Get curr raffle
         let curr_raffle = &self
             .all_raffles
             .get(&raffle_id)
             .expect("No raffle with this ID");
 
         let max_value = curr_raffle.sold_tickets;
+        let sold_tickets_u128: u128 = max_value.to_string().parse().unwrap();
+        let ticket_price = &curr_raffle.ticket_price;
+        let ticket_price_u128: u128 = ticket_price.to_string().parse().unwrap();
 
+        let amount_to_transfer =
+            (sold_tickets_u128 * ticket_price_u128) - (sold_tickets_u128 * ticket_price_u128 / 10);
+
+        //START Calculate random number
         let block_index = env::block_height();
         let block_timestamp = env::block_timestamp();
         let account_id = env::signer_account_id().as_bytes().to_vec();
 
-        let mut seed: u64 = 0;
+        let mut seed: u64 = 1;
 
         for byte in account_id {
             seed = (seed + u64::from(byte)) % max_value as u64;
@@ -130,7 +174,52 @@ impl RaffleTraits for Contract {
         seed = (seed + block_index) % max_value as u64;
         seed = (seed + block_timestamp) % max_value as u64;
 
-        seed
+        // seed
+        let winner = find_winner_by_seed(
+            &curr_raffle.purchased_tickets,
+            seed,
+            &curr_raffle.raffle_creator,
+        )
+        .unwrap();
+
+        //END Calculate random number
+
+        let contract_nft_user = get_data_from_raffle_id(&curr_raffle.raffle_id);
+
+        let creator_address = &curr_raffle.raffle_creator;
+        let nft_id = contract_nft_user[1].to_owned();
+
+        let nft_contract_string = contract_nft_user[0].to_owned();
+        let nft_contract = AccountId::try_from(nft_contract_string).unwrap();
+
+        //Send NFT to winner
+        let nft_promise = ext_nft_contract::ext(nft_contract.clone())
+            .with_static_gas(Gas(9 * TGAS))
+            .with_attached_deposit(ONE_YOCTO)
+            .nft_transfer(winner.clone(), nft_id, None, None);
+
+        //Send money to creator
+        let send_money_promise = Promise::new(creator_address.clone()).transfer(amount_to_transfer);
+
+        // let callback_promise = nft_promise.then(
+        //     env::current_account_id(),
+        //     "on_nft_transfer_callback",
+        //     &serde_json::to_vec(&nft_id).expect("Failed to serialize input"),
+        //     0, // No attached deposit
+        //     Gas(5 * TGAS),
+        // );
+
+        //Res => ["nft-tst.testnet", "2:2", "ludikonj.testnet"]
+        //Na [0] uraditi cross contarcg call i poslati [1] nft  nft_approve / nft_transfer. Mislim da bih mogao koristiti direktno nft_transfer
+        //na [2] poslati pare iz kontrakta, br prodatih karata * price / 7,5
+
+        (
+            winner,
+            seed,
+            amount_to_transfer.to_string(),
+            sold_tickets_u128.to_string(),
+            ticket_price_u128.to_string(),
+        )
     }
 
     #[payable]
@@ -180,7 +269,7 @@ impl RaffleTraits for Contract {
         }
 
         assert!(
-            total_tickets_number < max_ticket_number.clone(),
+            total_tickets_number <= max_ticket_number.clone(),
             "Not enough tickets"
         );
 
@@ -197,35 +286,48 @@ impl RaffleTraits for Contract {
         current_raffle
     }
 
-    // #[private]
-    // #[handle_result]
-    // fn cross_contract_nft_transfer(
-    //     &self,
-    //     #[callback_result] call_result: Result<String, PromiseError>,
-    // ) -> Result<String, String> {
-    //     return match call_result {
-    //         Ok(v) => Ok(v.to_string()),
-    //         Err(e) => Err("Error occurs here".to_string()),
-    //     };
+    // fn test_pseudo_random_number(max_value: u64) -> u64 {
+    //     let block_index = env::block_height();
+    //     let block_timestamp = env::block_timestamp();
+    //     let account_id = env::signer_account_id().as_bytes().to_vec();
+
+    //     let mut seed: u64 = 0;
+
+    //     for byte in account_id {
+    //         seed = (seed + u64::from(byte)) % max_value as u64;
+    //     }
+
+    //     let seed_log = format!("First {}", seed);
+
+    //     env::log_str(&seed_log);
+    //     seed = (seed + block_index) % max_value as u64;
+
+    //     let seed_log2 = format!("Second seed {} and block index -> {}", seed, block_index);
+
+    //     env::log_str(&seed_log2);
+
+    //     seed = (seed + block_timestamp) % max_value as u64;
+
+    //     let seed_log3 = format!(
+    //         "Third seed {} and block timestamp -> {}",
+    //         seed, block_timestamp
+    //     );
+
+    //     env::log_str(&seed_log3);
+
+    //     seed
     // }
 
-    // #[private]
-    // #[handle_result]
-    // fn cross_callback(
-    //     &self,
-    //     #[callback_result] call_result: Result<NFTContractMetadata, PromiseError>,
-    // ) -> Result<NFTContractMetadata, String> {
-    //     // if call_result.is_err() {
-    //     //     return "".to_string();
-    //     // }
-    //     if call_result.is_ok() {
-    //         return Ok(call_result.unwrap());
-    //     } else {
-    //         return Err(String::from("Some error occurs"));
-    //     }
-    //     // Return the greeting
-    //     // let greeting: NFTContractMetadata = call_result.unwrap_or_default();
-    //     // let greeting: String = String::from("Sve ok");
-    //     // greeting
-    // }
+    #[private]
+    fn on_nft_transfer_callback(&mut self, nft_id: TokenId) {
+        let is_transfer_successful = match env::promise_result(0) {
+            PromiseResult::Successful(_) => true,
+            _ => false,
+        };
+        if is_transfer_successful {
+            env::log(format!("NFT with ID: {} transfer succeeded", nft_id).as_bytes());
+        } else {
+            env::log(format!("NFT with ID: {} transfer failed", nft_id).as_bytes());
+        }
+    }
 }

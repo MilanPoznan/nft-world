@@ -10,6 +10,7 @@ deploy comand: near deploy --wasmFile ./contract/target/wasm32-unknown-unknown/r
 near call contract-name nft_approve '{"token_id": "2:2", "account_id": "nft-proba.testnet", "msg": "{\"ticket_price\": 100000000000000000000000}" }' --accountId my-account
 
 NEW_CONT=raffle-nft2.testnet
+CONT_ID=raffle-nft3.testnet
 
 near call $CONT_ID get_all_raffles --accountId $CONT_ID
 
