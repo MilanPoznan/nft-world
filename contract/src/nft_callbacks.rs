@@ -33,6 +33,7 @@ trait NonFungibleTokenApprovalsReceiver {
     );
 }
 
+//31 tgas
 #[near_bindgen]
 impl NonFungibleTokenApprovalsReceiver for Contract {
     fn nft_on_approve(

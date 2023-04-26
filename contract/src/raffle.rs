@@ -2,7 +2,8 @@ use core::num;
 
 use crate::*;
 use near_sdk::{
-    env, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault, Promise,
+    env::{self},
+    log, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault, Promise,
     PromiseError, PromiseResult,
 };
 
@@ -222,6 +223,7 @@ impl RaffleTraits for Contract {
         )
     }
 
+    //10tgas dodati na ovo
     #[payable]
     fn purchase_raffle(
         &mut self,
@@ -229,6 +231,13 @@ impl RaffleTraits for Contract {
         number_of_tickets: u32,
         purchaser: AccountId,
     ) -> SingleRaffle {
+        let required_gas: Gas = Gas(20_000_000_000_000); // 10 TGas
+
+        assert!(
+            env::prepaid_gas() >= required_gas,
+            "User must attach at least 20 TGas for this operation."
+        );
+
         let signer_id = env::predecessor_account_id();
 
         assert_eq!(purchaser, signer_id.clone(), "Buyer should be signer");
