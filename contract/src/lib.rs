@@ -75,7 +75,6 @@ pub struct Contract {
     pub supported_nft_contracts: LookupSet<ContractID>,
     pub all_raffles: UnorderedMap<String, SingleRaffle>,
     pub users: UnorderedMap<AccountId, SingleUser>,
-    //
     pub by_owner_id: LookupMap<AccountId, UnorderedSet<RaffleID>>,
     //keep track of the storage that accounts have payed
     pub storage_deposits: LookupMap<AccountId, Balance>,

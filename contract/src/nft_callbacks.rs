@@ -22,7 +22,7 @@ trait NonFungibleTokenApprovalsReceiver {
         owner_id: AccountId,
         approval_id: u64,
         msg: String,
-    );
+    ) -> String;
 
     fn nft_on_transfer(
         &mut self,
@@ -30,7 +30,7 @@ trait NonFungibleTokenApprovalsReceiver {
         previous_token_owner: AccountId,
         token_id: TokenId,
         msg: String,
-    );
+    ) -> String;
 }
 
 //31 tgas
@@ -42,7 +42,7 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
         owner_id: AccountId, // token.owner_id
         approval_id: u64,
         msg: String,
-    ) {
+    ) -> String {
         // enforce cross contract call and owner_id is signer
         //Kontrakt koji me pinga
         let nft_contract_id = env::predecessor_account_id();
@@ -88,6 +88,8 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
             .with_attached_deposit(ONE_YOCTO)
             .nft_transfer(receiver_id, token_id, new_approval, option_id);
         // .nft_transfer(receiver_id, token_id, new_approval, memo, msg);
+
+        return "Success Approve".to_owned();
     }
 
     fn nft_on_transfer(
@@ -96,7 +98,7 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
         previous_token_owner: AccountId,
         token_id: TokenId,
         msg: String,
-    ) {
+    ) -> String {
         // enforce cross contract call and owner_id is signer
         //Kontrakt koji me pinga
         let nft_contract_id = env::predecessor_account_id();
@@ -120,5 +122,7 @@ impl NonFungibleTokenApprovalsReceiver for Contract {
         );
 
         self.all_raffles.insert(&raffle_id, &new_raffle);
+
+        return "Success Transfer".to_string();
     }
 }

@@ -1,4 +1,4 @@
-CONT_ID=nft-proba.testnet ime kontrakt ownera Tacnije main wallet
+CONT_ID=raffle-nft4.testnet ime kontrakt ownera Tacnije main wallet
 nft-tst.testnet 
 
 
