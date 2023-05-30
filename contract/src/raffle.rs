@@ -103,10 +103,46 @@ pub trait RaffleTraits {
     ) -> SingleRaffle;
 
     fn on_nft_transfer_callback(&mut self, nft_id: TokenId);
+
+    fn cancel_raffle_and_return_nft(&mut self, raffle_id: String) {}
 }
 
 #[near_bindgen]
 impl RaffleTraits for Contract {
+    fn cancel_raffle_and_return_nft(&mut self, raffle_id: String) {
+        let single_raffle = self.get_single_raffle(&raffle_id);
+        let predecessor = env::predecessor_account_id();
+        let zero_u32: u32 = 0;
+
+        let creator_address = &single_raffle.raffle_creator;
+
+        assert_eq!(
+            creator_address.clone(),
+            predecessor,
+            "Predecessor has to be a raffle creator"
+        );
+
+        assert!(
+            &single_raffle.sold_tickets == &zero_u32,
+            "Already sold {} amount of tickets",
+            &single_raffle.sold_tickets
+        );
+
+        self.all_raffles.remove(&raffle_id);
+
+        let contract_nft_user = get_data_from_raffle_id(&raffle_id);
+
+        let nft_id = contract_nft_user[1].to_owned();
+
+        let nft_contract_string = contract_nft_user[0].to_owned();
+        let nft_contract = AccountId::try_from(nft_contract_string).unwrap();
+
+        let nft_promise = ext_nft_contract::ext(nft_contract.clone())
+            .with_static_gas(Gas(9 * TGAS))
+            .with_attached_deposit(ONE_YOCTO)
+            .nft_transfer(creator_address.clone(), nft_id, None, None);
+    }
+
     fn get_single_raffle(&self, raffle_id: &RaffleID) -> SingleRaffle {
         self.all_raffles.get(&raffle_id).expect("NO faffle found")
     }
